@@ -100,48 +100,54 @@ class PlayFieldModel extends ChangeNotifier
       {
           case shiftDirection.top:
           {
-            next_el[_height_index]=next_el[_height_index]-1;
-            prev_el[_height_index] = prev_el[_height_index]+1;
+            next_el[_height_index] = next_el[_height_index] - 1;
+            prev_el[_height_index] = prev_el[_height_index] + 1;
 
             break;
           }
 
           case shiftDirection.bottom:
           {
-            next_el[_height_index] = next_el[_height_index]+1;
-            prev_el[_height_index] = prev_el[_height_index]-1;
+            next_el[_height_index] = next_el[_height_index] + 1;
+            prev_el[_height_index] = prev_el[_height_index] - 1;
             break;
           }
 
           case shiftDirection.left:
           {
-            next_el[_width_index]=next_el[_width_index]-1;
-            prev_el[_width_index] = prev_el[_width_index]+1;
+            next_el[_width_index] = next_el[_width_index] - 1;
+            prev_el[_width_index] = prev_el[_width_index] + 1;
 
             break;
           }
 
           case shiftDirection.right:
           {
-            next_el[_width_index]=next_el[_width_index]+1;
-            next_el[_width_index]=next_el[_width_index]-1;
+            var x = next_el[_width_index];
+            var y = next_el[_width_index] + 1;
+            print("EVENT");
+            print("el = $x | next_el = $y");
+
+            print("before $next_el");
+            next_el[_width_index] = next_el[_width_index] + 1;
+            print("after $next_el");
+            prev_el[_width_index] = prev_el[_width_index] - 1;
 
             break;
           }
       }
+        var active_el = active_figure[i];
+        print("i: $i | active_el: $active_el | next_el: $next_el");
         if(field_state[next_el[_width_index]][next_el[_height_index]].pixel_key.currentState.el == "qw")
         {
           if(field_state[prev_el[_width_index]][prev_el[_height_index]].pixel_key.currentState.el == "qw")
           {
-            field_state[next_el[_width_index]][next_el[_height_index]].pixel_key.currentState.el = "as";
-            field_state[active_figure[i][_width_index]][active_figure[i][_height_index]].pixel_key.currentState.el = "qw";
             changed_pixels.add(next_el);
             changed_pixels.add(active_figure[i]);
             break;
           }
           else
           {
-            field_state[next_el[_width_index]][next_el[_height_index]].pixel_key.currentState.el = "as";
             changed_pixels.add(next_el);
           }
         }
@@ -149,13 +155,11 @@ class PlayFieldModel extends ChangeNotifier
         {
           if(field_state[prev_el[_width_index]][prev_el[_height_index]].pixel_key.currentState.el == "qw")
           {
-            field_state[active_figure[i][_width_index]][active_figure[i][_height_index]].pixel_key.currentState.el = "qw";
             changed_pixels.add(active_figure[i]);
           }
           else {}
         }
-      var active_el = active_figure[i];
-      print("i: $i | active_el: $active_el | next_el: $next_el");
+
 
       active_figure[i] = next_el;
 
@@ -172,7 +176,10 @@ class PlayFieldModel extends ChangeNotifier
       while (changed_pixels.length != 1)
     {
       var el = changed_pixels.removeLast();
-      field_state[el[_width_index]][el[_height_index]].pixel_key.currentState.Update();
+      if(field_state[el[_width_index]][el[_height_index]].pixel_key.currentState.el == "qw")
+      {field_state[el[_width_index]][el[_height_index]].pixel_key.currentState.el = "as";}
+      else{field_state[el[_width_index]][el[_height_index]].pixel_key.currentState.el = "qw";}
+        field_state[el[_width_index]][el[_height_index]].pixel_key.currentState.Update();
     }
   }
 }
