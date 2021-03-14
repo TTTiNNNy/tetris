@@ -83,7 +83,8 @@ class GamePanelControl extends StatelessWidget
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children:
       [
-        Container (child: IconButton(onPressed: () { panel.ShiftActiveFigure(shiftDirection.left);}, icon: Icon(Icons.keyboard_arrow_left), )),
+
+        IconButton(onPressed: () {panel.ShiftActiveFigure(shiftDirection.left);}, icon: Icon(Icons.keyboard_arrow_left), ),
         IconButton(onPressed: () {panel.ShiftActiveFigure(shiftDirection.right);}, icon: Icon(Icons.keyboard_arrow_right),),
         IconButton(onPressed: () {panel.ShiftActiveFigure(shiftDirection.bottom);}, icon: Icon(Icons.keyboard_arrow_down),),
         Container (child: IconButton (onPressed: () { panel.CreateRect(); },icon: Icon(Icons.refresh))),
