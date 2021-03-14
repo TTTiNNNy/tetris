@@ -80,14 +80,30 @@ class MyFormState extends State {
   }
 }
 
-void main() => runApp(
-    new MaterialApp(
+void main() => {
+  runApp
+  (
+    new MaterialApp
+      (
         debugShowCheckedModeBanner: false,
-        theme: myTheme,
-        home: new Scaffold(
+        //theme: myTheme,
+        home: new Scaffold
+          (
             appBar: new AppBar(title: new Text('Tetris')),
             body: new PlayForm(),
+          )
+      )
+  )
 
-        )
-    )
-);
+};
+
+// void main() {
+//   runApp(
+//     MaterialApp(
+//       color: Colors.black,
+//       home: Scaffold(
+//         backgroundColor: Colors.black,
+//       ),
+//     ),
+//   );
+// }
