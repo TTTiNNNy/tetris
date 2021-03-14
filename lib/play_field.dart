@@ -1,24 +1,43 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'dart:ffi';
 
-class PlayForm extends StatefulWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
+import 'package:tetris/model/play_field_model.dart';
+import 'package:tetris/play_field.dart';
+
+
+class PlayForm extends StatefulWidget
+{
+  PlayFieldModel field_model = new PlayFieldModel(PlayForm.width, PlayForm.height);
+
+  static const  width = 6;
+  static const height = 10;
+  PlayForm({Key key,}) : super(key: key);
+
   @override
   State<StatefulWidget> createState() => PlayField();
 }
 
-class PlayField extends State
+class PlayField extends State<PlayForm>
 {
+
+  GlobalKey last_key = GlobalKey();
   int _count = 0;
   StatefulWidget wg ;
+
   @override
   Widget build(BuildContext context)
   {
+
     const double _padding = 10;
     return Column
        (
 
           children:
           [
+            //Text("qwert"),
             Expanded( child:
             GridView.builder
             (
@@ -26,40 +45,53 @@ class PlayField extends State
               (
                 mainAxisSpacing: 4,
                 crossAxisSpacing: 4,
-                crossAxisCount: 10
+                crossAxisCount: PlayForm.width
               ),
-              itemCount: 150,
+              itemCount: PlayForm.width * PlayForm.height,
               itemBuilder: (BuildContext ctx, index)
               {
-                return Container
-                (
-
-                 alignment: Alignment.center,
-                 child: this.wg,
-                 decoration: BoxDecoration(
-                 color: Colors.black54,
-                 borderRadius: BorderRadius.circular(5)),
-                );
+                int height_index = (index / PlayForm.width).truncate().toInt();
+                int width_index   = index % PlayForm.width;
+                print ("index_build: $index");
+                 GlobalKey<VirtualPixelState> key = new GlobalKey();                         /// работает
+                 widget.field_model.field_state[width_index][height_index].pixel_key = key;  ///
+                var cont = VirtualPixel(key: key,);                                          ///
+                return cont;
               }
             )),//,
-             Row
-              (
-               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children:
-                [
 
-                  Container (child: IconButton(onPressed: () {setState((){ this._count++; if (this._count % 2 == 0){this.wg = TextButton(onPressed: null, child: Text("qwe"));}else{this.wg = TextButton(child: Text("asd")) as StatefulWidget;}});}, icon: Icon(Icons.keyboard_arrow_left), )),
-                  IconButton(onPressed: () {setState((){ this._count--;});}, icon: Icon(Icons.keyboard_arrow_right),),
-                  IconButton(onPressed: () {this.wg = TextButton(onPressed: null, child: Text("zxc")); this.build(context);}, icon: Icon(Icons.keyboard_arrow_down),),
-                  Container (child: IconButton(onPressed: () {},icon: Icon(Icons.refresh),  ))
-                ],
-              ),
-            Container(height: 20,child: Text("${this._count}"),),
-          ],
-
+            GamePanelControl(this.widget.field_model)
+  ]
     );
       // );
   }
 
 }
 
+
+
+class GamePanelControl extends StatelessWidget
+{
+  final PlayFieldModel panel;
+  GamePanelControl(this.panel);
+
+  @override
+  Widget build(BuildContext context)
+  {
+    return Row
+      (
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children:
+      [
+        Container (child: IconButton(onPressed: () { panel.ShiftActiveFigure(shiftDirection.left);}, icon: Icon(Icons.keyboard_arrow_left), )),
+        IconButton(onPressed: () {panel.ShiftActiveFigure(shiftDirection.right);}, icon: Icon(Icons.keyboard_arrow_right),),
+        IconButton(onPressed: () {panel.ShiftActiveFigure(shiftDirection.bottom);}, icon: Icon(Icons.keyboard_arrow_down),),
+        Container (child: IconButton (onPressed: () { panel.CreateRect(); },icon: Icon(Icons.refresh))),
+        Container(height: 20,child: Text("0")),
+      ],
+    );
+  }
+
+
+
+}
