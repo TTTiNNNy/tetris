@@ -12,8 +12,8 @@ class PlayForm extends StatefulWidget
 {
   PlayFieldModel field_model = new PlayFieldModel(PlayForm.width, PlayForm.height);
 
-  static const  width = 6;
-  static const height = 10;
+  static const  width = 10;
+  static const height = 15;
   PlayForm({Key key,}) : super(key: key);
 
   @override
