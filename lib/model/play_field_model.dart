@@ -15,31 +15,27 @@ class PlayFieldModel extends ChangeNotifier
   int _height;
   int _width;
   List<List<VirtualPixelModel>> field_state;
+  List<List<int>> accumulated_entities;
   List<List<int>> active_figure;
-  List<List<int>> changed_pixels = [];
+  List<List<int>> changed_pixels;
   static const int _width_index = 0;
   static const int _height_index = 1;
 
   PlayFieldModel(this._width, this._height,{Key key})
   {
 
-
-    //field_state = List.filled(_width, List.filled(_height, VirtualPixelModel(false), growable: true), growable: true);
-    //field_state = [[]];
     field_state = [[VirtualPixelModel(false)]];
 
-   // // print("widht: $_width height: $_height");
      for(int i = 0; i < _width; i++)
      {
        field_state.add([VirtualPixelModel(false)]);
        for (int j = 0; j < _height-1; j++)
        {
-        print("j = $j, i = $i");
          field_state[i].add(VirtualPixelModel(false));
-
-         //print(" $_field_state[i][j].pixel_key.hashCode ");
        }
      }
+    accumulated_entities = List.empty(growable: true);
+     for(int i = 0; i < _height; i++){ accumulated_entities.add([]); }
   }
 
   VirtualPixelModel getPixelInfo(int width, int height) => field_state[width][height];
@@ -76,17 +72,112 @@ class PlayFieldModel extends ChangeNotifier
       field_state[el_place[_width_index]][el_place[_height_index]].pixel_key.currentState.el = "as";
       field_state[el_place[_width_index]][el_place[_height_index]].pixel_key.currentState.Update();
     }
-    print("active_figure: $active_figure");
-    print("changed_pixels: $changed_pixels");
+  }
+  
+  void accumulate_entitie()
+  {
+      while (active_figure.length != 0)
+      {
+        field_state[active_figure.last[_width_index]][active_figure.last[_height_index]].is_accumulated = true;
+        var buf = active_figure.removeLast();
+        accumulated_entities[buf[_height_index]].add(buf[_width_index]);
+      }
+      for (int i = 0; i < _width; i++)
+      {
+        if(field_state[i][_height-1].pixel_key.currentState.el != "as")
+        {
+          return null;
+        }
+      }
+
+      for (int i = 0; i < _height; i++)
+      {
+        for (int j = 0; j < _width; j++)
+        {
+          if(field_state[j][i].is_accumulated == false){break;}
+          accumulated_entities[i] = [];
+            for (int k = 0; k < _width; k++)
+          {
+            field_state[k][i].is_accumulated = false;
+            field_state[k][i].pixel_key.currentState.el = "qw";
+            field_state[k][i].pixel_key.currentState.Update();
+          }
+        }
+
+      }
+       // active_figure = List.from(accumulated_entities);
+       // accumulated_entities = [];
+       //   ShiftActiveFigure(shiftDirection.bottom);
 
   }
 
+  bool IsShiftible(shiftDirection dir)
+  {
+    List<int> next_el;
+    List<int> last_el;
+    try{last_el = active_figure[0];}catch(el){return false;}
+    bool is_objects_touched = false;
+
+    switch (dir)
+    {
+      case shiftDirection.left:
+        {
+          for (List<int> el in active_figure)
+          {
+            if(last_el[_width_index] > el[_width_index]){last_el = el;}
+          }
+          next_el = List.from(last_el);
+          next_el[_width_index] = next_el[_width_index] - 1;
+          break;
+        }
+
+      case shiftDirection.right:
+        {
+          for (List<int> el in active_figure)
+          {
+            if(last_el[_width_index] < el[_width_index]){last_el = el;}
+          }
+          next_el = List.from(last_el);
+          next_el[_width_index] = next_el[_width_index] + 1;
+          break;
+        }
+
+      case shiftDirection.bottom:
+        {
+          next_el = List.from(last_el);
+          next_el[_height_index] = next_el[_height_index] + 1;
+          if (next_el[_height_index] == this._height){accumulate_entitie(); return false;}
+          for (List<int> el in active_figure)
+          {
+            if(last_el[_height_index] < el[_height_index]){last_el = el;}
+          }
+          break;
+        }
+    }
+    print("next_el_is_shift: $next_el");
+    print("accuM-entities: $accumulated_entities");
+
+    for(int height_num in accumulated_entities[next_el[_height_index]])
+    {
+
+      if(height_num == next_el[_width_index]){is_objects_touched = true; break;}
+    }
+
+    if(is_objects_touched)
+    {
+      print("obj_touch_event");
+      if (dir == shiftDirection.bottom){ accumulate_entitie();}
+      else{ return false;}
+    }
+
+    return true;
+  }
   void ShiftActiveFigure(shiftDirection dir)
   {
+    if(!IsShiftible(dir)){return null;};
     var active_figure_buffer = List.from(active_figure, growable: true);
     changed_pixels = [[0,0]];
     print("$active_figure_buffer");
-    //changed_pixels = List.filled(0, [0,0], growable: true);
     List<int> next_el;
     List<int> prev_el;
 
@@ -124,14 +215,7 @@ class PlayFieldModel extends ChangeNotifier
 
           case shiftDirection.right:
           {
-            var x = next_el[_width_index];
-            var y = next_el[_width_index] + 1;
-            print("EVENT");
-            print("el = $x | next_el = $y");
-
-            print("before $next_el");
             next_el[_width_index] = next_el[_width_index] + 1;
-            print("after $next_el");
             prev_el[_width_index] = prev_el[_width_index] - 1;
 
             break;
@@ -156,13 +240,16 @@ class PlayFieldModel extends ChangeNotifier
           }
           else
           {
+            print("next short. prev active");
+
             changed_pixels.add(next_el);
           }
         }
         else
         {
-          if(prev_el_key.currentState.el == "qw")
+          if(prev_el_key.currentState.el == "qw" || field_state[prev_el[_width_index]][prev_el[_height_index]].is_accumulated)
           {
+            print("next active. prev short or hz");
             changed_pixels.add(active_figure_buffer[i]);
           }
           else {}
@@ -173,11 +260,7 @@ class PlayFieldModel extends ChangeNotifier
 
       var x = field_state[active_el[_width_index]][active_el[_height_index]].pixel_key.currentState.el;
       var y = field_state[next_el[_width_index]][next_el[_height_index]].pixel_key.currentState.el;
-      print("x: $x");
-      print("y: $y");
 
-      print("changed_pixels: $changed_pixels");
-      print("next_el: $next_el active_figure: $active_figure_buffer");
 
     }
 
@@ -195,7 +278,7 @@ class PlayFieldModel extends ChangeNotifier
 
 class VirtualPixelModel
 {
-
+  var is_accumulated = false;
   var pixel_state = false;
   var is_changed  = false;
   GlobalKey<VirtualPixelState> pixel_key;
@@ -229,6 +312,7 @@ class VirtualPixelState extends State<VirtualPixel>
   {
     if (el == "qw"){
     return Container( child: Container(color: Color.fromARGB(200, 40, 40, 40),));}
-    else {return Container( child: Container(color: Color.fromARGB(200, 120, 120, 120),));}
+    else {return Container( child: Container(color: Color.fromARGB(
+        178, 78, 0, 161),));}
   }
 }
