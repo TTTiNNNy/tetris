@@ -14,7 +14,7 @@ class PlayForm extends StatefulWidget
 
   static const  width = 10;
   static const height = 15;
-  PlayForm({Key key,}) : super(key: key);
+  PlayForm({required Key key,}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => PlayField();
@@ -25,7 +25,8 @@ class PlayField extends State<PlayForm>
 
   GlobalKey last_key = GlobalKey();
   int _count = 0;
-  StatefulWidget wg ;
+
+  void SetCurFigure(formFigure? newValue) {setState(() {this.widget.field_model.curFigure = newValue!;});}
 
   @override
   Widget build(BuildContext context)
@@ -59,7 +60,24 @@ class PlayField extends State<PlayForm>
                 return cont;
               }
             )),//,
+            DropdownButton<formFigure>(items: <String>["square", "brokenLine", "brokenLineMirror", "straightLine", "pile", "lightning", "lightningMirror"]
+                .map<DropdownMenuItem<formFigure>>((String value)
+            {
+              formFigure val = formFigure.square;
+              switch (value)
+              {
+                case "square":{val = formFigure.square; break;}
+                case "brokenLine":{val = formFigure.brokenLine; break;}
+                case "brokenLineMirror":{val = formFigure.brokenLineMirror; break;}
+                case "straightLine":{val = formFigure.straightLine; break;}
+                case "pile":{val = formFigure.pile; break;}
+                case "lightning":{val = formFigure.lightning; break;}
+                case "lightningMirror":{val = formFigure.lightningMirror; break;}
+              }
 
+              return DropdownMenuItem<formFigure>(value: val, child: Text(value));
+            }).toList()
+              ,    onChanged: SetCurFigure),
             GamePanelControl(this.widget.field_model)
   ]
     );
@@ -87,7 +105,22 @@ class GamePanelControl extends StatelessWidget
         IconButton(onPressed: () {panel.ShiftActiveFigure(shiftDirection.left);}, icon: Icon(Icons.keyboard_arrow_left), ),
         IconButton(onPressed: () {panel.ShiftActiveFigure(shiftDirection.right);}, icon: Icon(Icons.keyboard_arrow_right),),
         IconButton(onPressed: () {panel.ShiftActiveFigure(shiftDirection.bottom);}, icon: Icon(Icons.keyboard_arrow_down),),
-        Container (child: IconButton (onPressed: () { panel.CreateRect(); },icon: Icon(Icons.refresh))),
+        IconButton(onPressed: ()
+          {
+            switch (panel.curFigure)
+            {
+              case formFigure.square:{panel.CreateFigure(formFigure.square); break;}
+              case formFigure.brokenLine:{panel.CreateFigure(formFigure.brokenLine); break;}
+              case formFigure.brokenLineMirror:{panel.CreateFigure(formFigure.brokenLineMirror); break;}
+              case formFigure.straightLine:{panel.CreateFigure(formFigure.straightLine); break;}
+              case formFigure.pile:{panel.CreateFigure(formFigure.pile); break;}
+              case formFigure.lightning:{panel.CreateFigure(formFigure.lightning); break;}
+              case formFigure.lightningMirror:{panel.CreateFigure(formFigure.lightningMirror); break;}
+            }
+          },
+          icon: Icon(Icons.fiber_new),),
+
+        Container (child: IconButton (onPressed: () { panel.RotateActiveFigure()  ; },icon: Icon(Icons.refresh))),
         Container(height: 20,child: Text("0")),
       ],
     );
