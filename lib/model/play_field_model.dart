@@ -1,4 +1,7 @@
 
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +12,6 @@ import 'dart:isolate';
 enum shiftDirection
 {
   bottom,
-  top,
   left,
   right
 }
@@ -98,17 +100,13 @@ class Figure
         active_figure_buff[i][0] = active_figure_buff[i][0] + horizontalShift;
         active_figure_buff[i][1] = active_figure_buff[i][1] + verticalShift;
       }
-
-
-
-
       return active_figure_buff;
   }
 }
 
 class PlayFieldModel extends ChangeNotifier {
   formFigure curFigure = formFigure.square;
-
+  Duration timeInterval = Duration(milliseconds: 1000);
   int _height;
   int _width;
   List<List<VirtualPixelModel>> field_state = [[]];
@@ -131,6 +129,13 @@ class PlayFieldModel extends ChangeNotifier {
     for (int i = 0; i < _height; i++) {
       accumulated_entities.add([]);
     }
+    Timer(Duration(milliseconds: 5000),() async
+    {
+
+      CreateFigure(formFigure.values[Random().nextInt(formFigure.lightningMirror.index)]);
+      Timer.periodic(timeInterval,(timer)async{if (activeFigure.active_figure.length < 1){CreateFigure(formFigure.values[Random().nextInt(formFigure.lightningMirror.index)]);}else ShiftActiveFigure(shiftDirection.bottom);});
+    });
+
   }
 
   VirtualPixelModel getPixelInfo(int width, int height) =>
@@ -187,6 +192,7 @@ class PlayFieldModel extends ChangeNotifier {
 
   void CreateFigure(formFigure figure)
   {
+
     switch (figure){
 
         case formFigure.square:
@@ -299,6 +305,7 @@ class PlayFieldModel extends ChangeNotifier {
       accumulated_entities[buf[_height_index]].add(buf[_width_index]);
     }
     FlushFullLines();
+
   }
 
   void FlushFullLines()
@@ -327,6 +334,7 @@ class PlayFieldModel extends ChangeNotifier {
       while(ShiftActiveFigure(shiftDirection.bottom));
     }
     }
+
   }
 
     bool IsShiftible(shiftDirection dir) {
@@ -339,7 +347,6 @@ class PlayFieldModel extends ChangeNotifier {
         return false;
       }
       last_el.add(first_el);
-      bool is_objects_touched = false;
 
       switch (dir) {
         case shiftDirection.left:
@@ -387,13 +394,11 @@ class PlayFieldModel extends ChangeNotifier {
             for (List<int> el in activeFigure.active_figure) {
               if (el[_height_index] + 1 == _height) {
                 accumulate_entitie();
-                print("isnt shiftible_right");
                 return false;
               }
               else {
                 if (field_state[el[_width_index]][(el[_height_index] + 1)]
                     .is_accumulated) {
-                  print("isnt shiftible_left to accum pixels");
                   accumulate_entitie();
                   {
                     return false;
@@ -428,14 +433,6 @@ class PlayFieldModel extends ChangeNotifier {
 
         switch (dir)
         {
-          case shiftDirection.top:
-            {
-              next_el[_height_index] = next_el[_height_index] - 1;
-              prev_el[_height_index] = prev_el[_height_index] + 1;
-
-              break;
-            }
-
           case shiftDirection.bottom:
             {
               next_el[_height_index] = next_el[_height_index] + 1;
@@ -558,6 +555,7 @@ class VirtualPixelState extends State<VirtualPixel>
   @override
   Widget build(BuildContext context)
   {
+
     if (el == "qw"){
     return Container( child: Container(color: Color.fromARGB(200, 40, 40, 40),));}
     else {return Container( child: Container(color: Color.fromARGB(
