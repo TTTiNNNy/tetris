@@ -105,8 +105,10 @@ class Figure
 }
 
 class PlayFieldModel extends ChangeNotifier {
+  int gameCount = 0;
   formFigure curFigure = formFigure.square;
-  Duration timeInterval = Duration(milliseconds: 1000);
+  int timeInterval = 1000;
+  Timer timer = Timer(Duration(milliseconds: 1000), (){});
   int _height;
   int _width;
   List<List<VirtualPixelModel>> field_state = [[]];
@@ -116,7 +118,8 @@ class PlayFieldModel extends ChangeNotifier {
   static const int _width_index = 0;
   static const int _height_index = 1;
 
-  PlayFieldModel(this._width, this._height) {
+  PlayFieldModel(this._width, this._height)
+  {
     field_state = [[VirtualPixelModel(false)]];
 
     for (int i = 0; i < _width; i++) {
@@ -129,14 +132,24 @@ class PlayFieldModel extends ChangeNotifier {
     for (int i = 0; i < _height; i++) {
       accumulated_entities.add([]);
     }
-    Timer(Duration(milliseconds: 5000),() async
-    {
+    Timer(Duration(milliseconds: 5000),(){setPeriodicMoving();});
+  }
 
+  void setPeriodicMoving() async
+  {
+    this.timer = Timer.periodic(Duration(milliseconds: timeInterval), timerCallBack);
+  }
+
+  void timerCallBack (Timer timer) async
+  {
+    if (activeFigure.active_figure.length <= 1)
+    {
       CreateFigure(formFigure.values[Random().nextInt(formFigure.lightningMirror.index)]);
-      Timer.periodic(timeInterval,(timer)async{if (activeFigure.active_figure.length < 1){CreateFigure(formFigure.values[Random().nextInt(formFigure.lightningMirror.index)]);}else ShiftActiveFigure(shiftDirection.bottom);});
-    });
+    }
+    else ShiftActiveFigure(shiftDirection.bottom);
 
   }
+
 
   VirtualPixelModel getPixelInfo(int width, int height) =>
       field_state[width][height];
@@ -331,8 +344,13 @@ class PlayFieldModel extends ChangeNotifier {
           activeFigure.active_figure.add([accumulated_entities[j].removeLast(), j]);
         }
       }
-      while(ShiftActiveFigure(shiftDirection.bottom));
+      while(ShiftActiveFigure(shiftDirection.bottom)){}
+      gameCount++;
+      timeInterval-=20;
+      timer.cancel();
+      this.timer = Timer.periodic(Duration(milliseconds: timeInterval), timerCallBack);
     }
+
     }
 
   }
