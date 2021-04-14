@@ -1,5 +1,6 @@
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -105,6 +106,7 @@ class Figure
 }
 
 class PlayFieldModel extends ChangeNotifier {
+  late BuildContext contextAlert;
   int gameCount = 0;
   formFigure curFigure = formFigure.square;
   int timeInterval = 1000;
@@ -137,7 +139,7 @@ class PlayFieldModel extends ChangeNotifier {
 
   void setPeriodicMoving() async
   {
-    this.timer = Timer.periodic(Duration(milliseconds: timeInterval), timerCallBack);
+      this.timer = Timer.periodic(Duration(milliseconds: timeInterval), timerCallBack);
   }
 
   void timerCallBack (Timer timer) async
@@ -145,11 +147,77 @@ class PlayFieldModel extends ChangeNotifier {
     if (activeFigure.active_figure.length <= 1)
     {
       CreateFigure(formFigure.values[Random().nextInt(formFigure.lightningMirror.index)]);
+      for (List<int> dot in activeFigure.active_figure)
+      {
+        if(field_state[dot[_width_index]][dot[_height_index]].is_accumulated){timer.cancel(); _gameOverAlert(gameCount); cleanField();  break; }
+      }
     }
     else ShiftActiveFigure(shiftDirection.bottom);
 
   }
 
+  _gameStartAgain(){      Timer(Duration(milliseconds: 3000),(){setPeriodicMoving();});}
+
+  _gameOverAlert(int count)
+  {
+    return showDialog<void>
+      (
+      context: this.contextAlert,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context)
+      {
+        return AlertDialog
+          (
+          title: Text('Game over'),
+          content: SingleChildScrollView
+            (
+            child: ListBody
+              (
+              children: <Widget>
+              [
+                Text('Your current scope: $count' ),
+              ],
+            ),
+          ),
+          actions: <Widget>
+          [
+            TextButton(
+              child: Text('Play again'),
+              onPressed: ()
+              {
+                Navigator.of(context).pop();
+                _gameStartAgain();
+              },
+            ),
+            TextButton(onPressed: (){exit(0);}, child: Text("Exit"))
+          ],
+        );
+      },
+    );
+  }
+
+  void cleanField()
+  {
+    for (int i = 0; i < _width; i++)
+    {
+      for (int j = 0; j < _height; j++)
+      {
+        field_state[i][j].pixel_key.currentState!.el = "qw";
+        field_state[i][j].is_accumulated = false;
+        field_state[i][j].pixel_key.currentState!.Update();
+      }
+    }
+
+    activeFigure = Figure();
+    gameCount = 0;
+    timeInterval = 1000;
+    accumulated_entities = [[]];
+    changed_pixels = [[]];
+    accumulated_entities = List.empty(growable: true);
+    for (int i = 0; i < _height; i++) {
+      accumulated_entities.add([]);
+    }
+  }
 
   VirtualPixelModel getPixelInfo(int width, int height) =>
       field_state[width][height];
