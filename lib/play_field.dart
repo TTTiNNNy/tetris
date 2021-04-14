@@ -10,7 +10,6 @@ import 'package:tetris/play_field.dart';
 
 class PlayForm extends StatefulWidget
 {
-  PlayFieldModel field_model = new PlayFieldModel(PlayForm.width, PlayForm.height);
 
   static const  width = 10;
   static const height = 15;
@@ -22,17 +21,20 @@ class PlayForm extends StatefulWidget
 
 class PlayField extends State<PlayForm>
 {
+  PlayFieldModel field_model = new PlayFieldModel(PlayForm.width, PlayForm.height);
+
 
   GlobalKey last_key = GlobalKey();
   int _count = 0;
 
-  void SetCurFigure(formFigure? newValue) {setState(() {this.widget.field_model.curFigure = newValue!;});}
+  void SetCurFigure(formFigure? newValue) {setState(() {field_model.curFigure = newValue!;});}
 
   @override
   Widget build(BuildContext context)
   {
 
     const double _padding = 10;
+    field_model.contextAlert = context;
     return Column
        (
 
@@ -55,7 +57,7 @@ class PlayField extends State<PlayForm>
                 int width_index   = index % PlayForm.width;
                 print ("index_build: $index");
                  GlobalKey<VirtualPixelState> key = new GlobalKey();                         /// работает
-                 widget.field_model.field_state[width_index][height_index].pixel_key = key;  ///
+                 field_model.field_state[width_index][height_index].pixel_key = key;  ///
                 var cont = VirtualPixel(key: key,);                                          ///
                 return cont;
               }
@@ -78,7 +80,7 @@ class PlayField extends State<PlayForm>
             //   return DropdownMenuItem<formFigure>(value: val, child: Text(value));
             // }).toList()
             //   ,    onChanged: SetCurFigure),
-            GamePanelControl(this.widget.field_model)
+            GamePanelControl(field_model)
   ]
     );
       // );
